@@ -12,8 +12,16 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.ViewSwitcher;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,6 +32,46 @@ public class ReportDialog extends Dialog {
     private RecyclerView mRecyclerView;
     private ReportRecyclerViewAdapter mRecyclerViewAdapter;
 
+    private ViewSwitcher mViewSwitcher;
+    private String mEventType;
+    private OnClickListener mClickListener;
+
+    // Event specs
+    private ImageView mImageCamera;
+    private Button mBackButton;
+    private Button mSendButton;
+    private EditText mCommentEditText;
+    private ImageView mEventTypeImg;
+    private TextView mTypeTextView;
+    private DialogCallBack mDialogCallBack;
+
+
+    interface DialogCallBack {
+        void onSubmit(String editString, String event_type);
+        void startCamera();
+    }
+
+    public void setDialogCallBack(DialogCallBack dialogCallBack) {
+        mDialogCallBack = dialogCallBack;
+    }
+
+
+    private void setUpEventSpecs(final View dialogView) {
+        mImageCamera = (ImageView) dialogView.findViewById(R.id.event_camera_img);
+        mBackButton = (Button) dialogView.findViewById(R.id.event_back_button);
+        mSendButton = (Button) dialogView.findViewById(R.id.event_send_button);
+        mCommentEditText = (EditText) dialogView.findViewById(R.id.event_comment);
+        mEventTypeImg = (ImageView) dialogView.findViewById(R.id.event_type_img);
+        mTypeTextView = (TextView) dialogView.findViewById(R.id.event_type);
+
+        mSendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mDialogCallBack.onSubmit(mCommentEditText.getText().toString(), mEventType);
+            }
+        });
+    }
+
     public ReportDialog(@NonNull Context context) {
         this(context, R.style.MyAlertDialogStyle);
     }
@@ -31,6 +79,18 @@ public class ReportDialog extends Dialog {
     public ReportDialog(@NonNull Context context, int themeResId) {
         super(context, themeResId);
     }
+
+
+
+    public interface OnClickListener{
+        void setItem(String item);
+    }
+
+    public void setClickListener(OnClickListener callback) {
+        mClickListener = callback;
+    }
+
+
 
     public static ReportDialog newInstance(Context context, int cx, int cy) {
         ReportDialog dialog = new ReportDialog(context, R.style.MyAlertDialogStyle);
@@ -47,6 +107,7 @@ public class ReportDialog extends Dialog {
             @Override
             public void setItem(String item) {
                 // for switch item
+                showNextViewSwitcher(item);
             }
         });
         mRecyclerView.setAdapter(mRecyclerViewAdapter);
@@ -80,6 +141,14 @@ public class ReportDialog extends Dialog {
         });
 
         setupRecyclerView(dialogView);
+        mViewSwitcher = (ViewSwitcher) dialogView.findViewById(R.id.viewSwitcher);
+        Animation slide_in_left = AnimationUtils.loadAnimation(getContext(),
+                android.R.anim.slide_in_left);
+        Animation slide_out_right = AnimationUtils.loadAnimation(getContext(),
+                android.R.anim.slide_out_right);
+        mViewSwitcher.setInAnimation(slide_in_left);
+        mViewSwitcher.setOutAnimation(slide_out_right);
+        setUpEventSpecs(dialogView);
     }
 
     private void animateDialog(View dialogView, boolean open) {
@@ -109,4 +178,14 @@ public class ReportDialog extends Dialog {
             anim.start();
         }
     }
+
+    private void showNextViewSwitcher(String item) {
+        mEventType = item;
+        if (mViewSwitcher != null) {
+            mViewSwitcher.showNext();
+            mTypeTextView.setText(mEventType);
+            mEventTypeImg.setImageDrawable(ContextCompat.getDrawable(getContext(),Config.trafficMap.get(mEventType)));
+        }
+    }
+
 }
