@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -70,6 +71,20 @@ public class ReportDialog extends Dialog {
                 mDialogCallBack.onSubmit(mCommentEditText.getText().toString(), mEventType);
             }
         });
+
+        mBackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mViewSwitcher.showPrevious();
+            }
+        });
+
+        mImageCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mDialogCallBack.startCamera();
+            }
+        });
     }
 
     public ReportDialog(@NonNull Context context) {
@@ -78,6 +93,10 @@ public class ReportDialog extends Dialog {
 
     public ReportDialog(@NonNull Context context, int themeResId) {
         super(context, themeResId);
+    }
+
+    public void updateImage(Bitmap bitmap) {
+        mImageCamera.setImageBitmap(bitmap);
     }
 
 
